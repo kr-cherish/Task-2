@@ -1,24 +1,16 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import User from "@/model/User"; // Ensure correct path
+import User from "@/model/User"; 
 import connect from "@/app/utils/dbConnection";
 import { jwt } from "next-auth/jwt";
-
 
 interface CustomUser {
   id: string;
   email: string;
-  name?: string;
+  name: string;
   mobileNumber?: string;
 }
-
-interface CustomToken extends jwt{
-  id: string;
-  email?: string;
-  name?: string;
-  mobileNumber?: string;
-}  
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -54,7 +46,7 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user._id.toString(),
             email: user.email,
-            name: user.name || "User",
+            name: `${user.fname} ${user.lname}`,
             mobileNumber: user.mobileNumber ?? null,
           } as CustomUser;
         } catch (error) {
@@ -66,16 +58,6 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async signIn({ user, account }) {
-      await connect();
-
-      if (account?.provider === "credentials") {
-        return true;
-      }
-
-      return false;
-    },
-
     async session({ session, token }) {
       if (token?.id) {
         session.user = {
@@ -99,7 +81,6 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
   },

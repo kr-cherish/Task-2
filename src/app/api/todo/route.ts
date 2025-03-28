@@ -1,42 +1,43 @@
 import { NextResponse } from "next/server";
-import Todo from "@/model/Todo";
-import connectDB from "@/app/utils/dbConnection";
 import { getServerSession } from "next-auth";
-import authOptions from "@/app/api/auth/[...nextauth]/route"; // Your NextAuth config
+import connect from "@/app/utils/dbConnection";
+import Todo from "@/model/Todo";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export async function GET(req: Request) {
-  await connectDB();
-
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export const GET = async () => {
   try {
-    const todos = await Todo.find({ userId: session.user.id }); 
-    return NextResponse.json({ todos }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch todos" }, { status: 500 });
+    await connect();
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const todos = await Todo.find({ userId: session.user.id });
+    return NextResponse.json(todos, { status: 200 });
+  } catch (error: any) {
+    console.error("Error fetching todos:", error.message);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
-}
+};
 
-export async function POST(req: Request) {
-  await connectDB();
-
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { title, description, date, status } = await req.json();
-
-  if (!title || !description || !date) {
-    return NextResponse.json({ error: "All fields are required" }, { status: 400 });
-  }
-
+export const POST = async (request: Request) => {
   try {
+    await connect();
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { title, description, date, status } = await request.json();
+
+    if (!title || !description || !date) {
+      return NextResponse.json({ message: "All fields are required" }, { status: 400 });
+    }
+
     const newTodo = new Todo({
-      userId: session.user.id, 
+      userId: session.user.id,
       title,
       description,
       date,
@@ -44,60 +45,58 @@ export async function POST(req: Request) {
     });
 
     await newTodo.save();
-    return NextResponse.json({ message: "Todo created!", todo: newTodo }, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to create todo" }, { status: 500 });
+    return NextResponse.json(newTodo, { status: 201 });
+  } catch (error: any) {
+    console.error("Error creating todo:", error.message);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
-}
+};
+
+export const DELETE = async (request: Request) => {
+    try {
+      await connect();
+      const session = await getServerSession(authOptions);
+      
+      if (!session?.user) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      }
+
+      const { _id:id } = await request.json();
+      
+      await Todo.findOneAndDelete({ _id: id, userId: session.user.id });
+
+      console.log("Delete");
+      return NextResponse.json({ message: "Todo deleted successfully" }, { status: 200 });
+      
+    } catch (error: any) {
+      console.error("Error deleting todo:", error.message);
+      return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    }
+};
 
 export async function PUT(req: Request) {
-  await connectDB();
-
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { _id, title, description, date, status } = await req.json();
-
   try {
-    const todo = await Todo.findOne({ _id });
+    await connect(); 
+    const { _id, title, description, date, status } = await req.json();
 
-    if (!todo || todo.userId.toString() !== session.user.id) {
-      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    if (!_id) {
+      return NextResponse.json({ message: "Todo ID is required" }, { status: 400 });
     }
-
+    console.log(title);
+    
     const updatedTodo = await Todo.findByIdAndUpdate(
       _id,
       { title, description, date, status },
       { new: true }
     );
 
-    return NextResponse.json({ message: "Todo updated!", todo: updatedTodo }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to update todo" }, { status: 500 });
-  }
-}
-
-export async function DELETE(req: Request) {
-  await connectDB();
-
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { _id } = await req.json();
-
-  try {
-    const todo = await Todo.findOne({ _id });
-    if (!todo || todo.userId.toString() !== session.user.id) {
-      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+    if (!updatedTodo) {
+      return NextResponse.json({ message: "Todo not found" }, { status: 404 });
     }
 
-    await Todo.findByIdAndDelete(_id);
-    return NextResponse.json({ message: "Todo deleted!" }, { status: 200 });
+    return NextResponse.json(updatedTodo, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to delete todo" }, { status: 500 });
+    console.error("Error updating TODO:", error);
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }

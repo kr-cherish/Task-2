@@ -15,7 +15,8 @@ const RegisterPage = () => {
   }, [sessionStatus, router]);
 
   const isValidEmail = (email: string) => {
-    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    const emailRegex = /^[a-zA-Z0-9]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
     return emailRegex.test(email);
   };
 
@@ -29,7 +30,6 @@ const RegisterPage = () => {
       password: e.target.password.value.trim(),
       confirmPassword: e.target.confirmpassword.value.trim(),
     };
-    console.log(formData);
     
     if (!formData.fname || !formData.lname) {
       setError("First name and Last name are required.");
@@ -64,11 +64,10 @@ const RegisterPage = () => {
         },
         body: JSON.stringify(formData),
       });
-      // console.log(res);
-      
+
       if (res.status === 400) {
         setError("The email is already in use.");
-      } else if (res.status === 200) {
+      } else if (res.status === 201) {
         setError("");
         router.push("/login");
       } else {
@@ -86,56 +85,80 @@ const RegisterPage = () => {
 
   return (
     sessionStatus !== "authenticated" && (
-      <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="flex min-h-full flex-1 flex-col justify-center py-6 sm:px-6 lg:px-8">
         <div className="flex justify-center flex-col items-center">
           <h2 className="text-center text-2xl leading-9 tracking-tight text-gray-900">
             Sign up on our website
           </h2>
         </div>
 
-        <div className="mt-4 sm:mx-auto sm:w-full  sm:max-w-[480px]">
+        <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-[480px]">
           <div className="bg-[#FFFAFO] px-6 py-12 shadow sm:rounded-lg sm:px-12">
             <form className="space-y-6" onSubmit={handleSubmit}>
-              <div className="grid gap-4 border-[#e5e5e5]">
+              <div className="grid gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-900">First Name</label>
-                  <input id="fname" name="fname" type="text" required className="input-field border-[2px] border-black p-1 rounded-[5px] mt-[4px]" />
+                  <input id="fname" name="fname" type="text" required 
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 
+                      placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900">Last Name</label>
-                  <input id="lname" name="lname" type="text" required className="input-field border-[2px] border-black p-1 rounded-[5px] mt-[4px]" />
+                  <input id="lname" name="lname" type="text" required 
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 
+                      placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
+                  />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-900">Mobile Number</label>
-                <input id="mobileNumber" name="mobileNumber" type="text" required className="input-field border-[2px] border-black p-1 rounded-[5px] mt-[4px]" />
+                <input id="mobileNumber" name="mobileNumber" type="text" required 
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 
+                    placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-900">Email address</label>
-                <input id="email" name="email" type="email" required className="input-field  border-[2px] border-black p-1 rounded-[5px] mt-[4px]"/>
+                <input id="email" name="email" pattern="[a-zA-Z0-9@]+" type="email" required 
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 
+                    placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-900">Password</label>
-                <input id="password" name="password" type="password" required className="input-field border-[2px] border-black p-1 rounded-[5px] mt-[4px]" />
+                <input id="password" name="password" type="password" required 
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 
+                    placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-900">Confirm Password</label>
-                <input id="confirmpassword" name="confirmpassword" type="password" required className="input-field border-[2px] border-black p-1 rounded-[5px] mt-[4px]" />
+                <input id="confirmpassword" name="confirmpassword" type="password" required 
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 
+                    placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
+                />
               </div>
 
               <div className="flex items-center">
-                <input id="terms" name="terms" type="checkbox" required className="mr-2 border-[2px] border-black p-1 rounded-[10px] mt-[4px]" />
+                <input id="terms" name="terms" type="checkbox" required 
+                  className="mr-2 border-gray-300 rounded" 
+                />
                 <label htmlFor="terms" className="text-sm text-gray-900">
                   Accept our terms and privacy policy
                 </label>
               </div>
 
               <div>
-                <button type="submit" className="btn-primary hover:bg-black hover:text-white hover:rounded-[10px] px-4 py-2">Sign up</button>
+                <button type="submit" 
+                  className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white font-semibold shadow-sm 
+                    hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                  Sign up
+                </button>
                 {error && <p className="text-red-600 text-center mt-4">{error}</p>}
               </div>
             </form>
