@@ -77,12 +77,12 @@ export async function PUT(req: Request) {
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
+  
   const { fname, lname, mobileNumber, email } = await req.json(); 
 
   try {
     const updatedUser = await User.findOneAndUpdate(
-      { email: session.user.email },
+      { email: session?.user?.email },
       { fname, lname, mobileNumber }, 
       { new: true } 
     );
@@ -92,7 +92,7 @@ export async function PUT(req: Request) {
     }
 
     return NextResponse.json(updatedUser, { status: 200 });
-    
+
   } catch (error) {
     console.error("Profile Update Error:", error);
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });

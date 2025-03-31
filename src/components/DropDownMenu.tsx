@@ -3,12 +3,12 @@ import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 export default function UserMenu() {
   const [open, setOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter();
 
   useEffect(() => {
     function handleClickOutside(event : MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     }

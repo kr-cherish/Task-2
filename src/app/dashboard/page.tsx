@@ -6,8 +6,8 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
-  const [todos, setTodos] = useState([]);
-  const [filteredTodos, setFilteredTodos] = useState([]);
+  const [todos, setTodos] = useState<TodoFormData[]>([]);
+  const [filteredTodos, setFilteredTodos] = useState<TodoFormData[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   console.log("🚀 ~ Dashboard ~ isEditing:", isEditing)
@@ -18,7 +18,7 @@ export default function Dashboard() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string>("");
   const todosPerPage = viewMode === "grid" ? 9 : 5;
 
-  const modalRef = useRef(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   type TodoFormData = {
     _id: string;
@@ -58,7 +58,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         setShowModal(false);
         setIsEditing(false);
       }
@@ -89,12 +89,12 @@ export default function Dashboard() {
     setCurrentPage(1);
   }, 500);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e: React.ChangeEvent<HTMLInputElement> | React.FormEvent<HTMLFormElement>
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
@@ -119,7 +119,7 @@ export default function Dashboard() {
 
   };
 
-  const handleUpdate = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const res = await fetch("/api/todo", {
