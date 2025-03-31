@@ -102,33 +102,6 @@ const handleSubmit = async (e: any) => {
                   />
                 </div>
               </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
-                  />
-                  <label
-                    htmlFor="remember-me"
-                    className="ml-3 block text-sm leading-6 text-gray-900"
-                  >
-                    Remember me
-                  </label>
-                </div>
-
-                <div className="text-sm leading-6">
-                  <Link
-                    href="#"
-                    className="text-black hover:text-gray-900"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-              </div>
-
               <div>
                 <button
                   type="submit"
@@ -146,11 +119,6 @@ const handleSubmit = async (e: any) => {
                   aria-hidden="true"
                 >
                   <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm font-medium leading-6">
-                  <span className="bg-white px-6 text-gray-900">
-                    Or continue with
-                  </span>
                 </div>
               </div>
               <p className="text-red-600 text-center text-[16px] my-2">
