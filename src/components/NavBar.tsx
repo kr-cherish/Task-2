@@ -14,18 +14,19 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="text-2xl">
+    <header className="text-2xl max-w-[1440px] mx-auto">
       <nav
         className=""
         aria-label="Global"
       >
+
         <div className="flex items-center p-4 bg-black text-white w-full ">
           <div className="px-4">
             <Image
               src="/demo.jpeg"
               alt="Demo"
-              width={50}
-              height={50}
+              width={70}
+              height={70}
               className="rounded-[10px] left-0"
             />
           </div>
@@ -62,7 +63,7 @@ const Navbar = () => {
             ) : (
               <>
                 {session.user?.email && <span className="ml-10 text-sm">
-                    <DropDownMenu />
+                  <DropDownMenu />
                 </span>}
                 {/* <button
                   onClick={() => signOut({ redirect: true, callbackUrl: "/" })}

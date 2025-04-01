@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function ProfilePage() {
-  const { data: session,update } = useSession();
+  const { data: session, update } = useSession();
   const router = useRouter();
 
   type User = {
-    fname : string,
-    lname : string,
-    mobileNumber :string,
-    email : string
+    fname: string,
+    lname: string,
+    mobileNumber: string,
+    email: string
   }
 
   const [user, setUser] = useState<User>({
@@ -27,7 +27,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (session?.user) {
       setUser({
-        fname: session.user.fname|| "",
+        fname: session.user.fname || "",
         lname: session.user.lname || "",
         mobileNumber: session.user.mobileNumber || "",
         email: session.user.email || "",
@@ -48,7 +48,7 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
-        update({ fname: user.fname, lname: user.lname, mobileNumber: user.mobileNumber }); 
+        update({ fname: user.fname, lname: user.lname, mobileNumber: user.mobileNumber });
         console.log("Profile updated successfully!");
         router.push('/dashboard')
       } else {
@@ -60,32 +60,35 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-6 bg-gray-900 text-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-4">Profile</h2>
+    <div className="flex justify-center items-center">
+  <div className="p-7 bg-gray-900 text-white rounded-[30px] mt-10 shadow-lg flex flex-col items-center justify-center max-w-md w-full">
+    <h2 className="text-2xl font-semibold mb-4">Update Profile</h2>
 
-      <div className="mb-4">
-        <label className="block mb-1">First Name</label>
-        <Input type="text" name="fname" value={user.fname} onChange={handleChange} placeholder="Update First Name" />
-      </div>
-
-      <div className="mb-4">
-        <label className="block mb-1">Last Name</label>
-        <Input type="text" name="lname" value={user.lname} onChange={handleChange} placeholder="Update Last Name" />
-      </div>
-
-      <div className="mb-4">
-        <label className="block mb-1">Mobile No</label>
-        <Input type="text" name="mobileNumber" value={user.mobileNumber} onChange={handleChange} placeholder="Update Mobile Number" />
-      </div>
-
-      <div className="mb-4">
-        <label className="block mb-1">Email</label>
-        <Input type="email" name="email" value={user.email}  readOnly className="bg-gray-700 text-gray-400" />
-      </div>
-
-      <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-        Save Changes
-      </Button>
+    <div className="mb-4 w-full">
+      <label className="block mb-2 text-[18px] text-white">First Name</label>
+      <Input type="text" name="fname" value={user.fname} onChange={handleChange} placeholder="Update First Name" />
     </div>
+
+    <div className="mb-4 w-full">
+      <label className="block mb-2 text-[18px] text-white ">Last Name</label>
+      <Input type="text" name="lname" value={user.lname} onChange={handleChange} placeholder="Update Last Name" />
+    </div>
+
+    <div className="mb-4 w-full">
+      <label className="block mb-2 text-[18px] text-white">Mobile No</label>
+      <Input type="text" name="mobileNumber" value={user.mobileNumber} onChange={handleChange} placeholder="Update Mobile Number" />
+    </div>
+
+    <div className="mb-4 w-full">
+      <label className="block mb-2 text-[18px] text-white">Email</label>
+      <Input type="email" name="email" value={user.email} readOnly className="bg-gray-700 text-gray-400 w-full" />
+    </div>
+
+    <Button onClick={handleSave} className="bg-blue-600 text-[18px] hover:bg-blue-700 mt-3 w-full">
+      Save Changes
+    </Button>
+  </div>
+</div>
+
   );
 }

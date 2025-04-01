@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { debounce } from "lodash";
 import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
+import Image from "next/image";
+import { Rows3 } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 export default function Dashboard() {
   const [todos, setTodos] = useState<TodoFormData[]>([]);
   const [filteredTodos, setFilteredTodos] = useState<TodoFormData[]>([]);
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const todosPerPage = viewMode === "grid" ? 9 : 5;
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -77,17 +79,27 @@ export default function Dashboard() {
     fetchTodos();
   }, []);
 
-  const handleSearch = debounce((query: string) => {
-    if (!query) {
-      setFilteredTodos(todos);
-      return;
+  useEffect(() => {
+    handleSearch(searchQuery, statusFilter);
+    console.log(1);
+
+  }, [searchQuery, statusFilter, todos]);
+
+  const handleSearch = (query: string, status: string) => {
+    let filtered = todos;
+
+    if (query) {
+      filtered = filtered.filter((todo) =>
+        todo.title.toLowerCase().includes(query.toLowerCase())
+      );
     }
-    const filtered = todos.filter((todo: TodoFormData) =>
-      todo.title.toLowerCase().includes(query.toLowerCase())
-    )
+
+    if (status) {
+      filtered = filtered.filter((todo) => todo.status === status);
+    }
+
     setFilteredTodos(filtered);
-    setCurrentPage(1);
-  }, 500);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -143,10 +155,8 @@ export default function Dashboard() {
       date: todo.date.split("T")[0],
       status: todo.status,
     });
-
     setIsEditing(true);
     setShowModal(true);
-
   };
 
   const handleDelete = async () => {
@@ -158,6 +168,17 @@ export default function Dashboard() {
     });
     fetchTodos();
     setDeleteConfirmId("");
+  };
+
+  const handleMarkAsDone = async (todoId:string) => {
+    try {
+      const updatedTodos = todos.map(todo =>
+        todo._id === todoId ? { ...todo, status: "completed" } : todo
+      );
+      setTodos(updatedTodos);
+    } catch (error) {
+      console.error("Error marking TODO as done", error);
+    }
   };
 
 
@@ -174,25 +195,54 @@ export default function Dashboard() {
   const currentTodos = filteredTodos.slice(indexOfFirstTodo, indexOfLastTodo);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Todo List</h1>
+    <div className="p-6 max-w-7xl mx-auto">
+      <h1 className="text-4xl font-bold mb-4">Todo List</h1>
 
-      <div className="flex flex-wrap gap-4 mb-4">
-        <button onClick={() => setShowModal(true)} className="bg-blue-500 text-white px-4 py-2 rounded">Add Todo</button>
+      <div className="flex flex-wrap lg:gap-4 lg:mb-4 items-center justify-between">
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">List View</span>
-          <Switch
-            checked={viewMode === "grid"}
-            onCheckedChange={(checked) => setViewMode(checked ? "grid" : "list")}
+        <div className="flex items-center gap-4 flex-wrap">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); handleSearch(e.target.value); }}
+            placeholder="Search by"
+            className="p-2 rounded border border-black w-[250px]"
           />
-          <span className="text-sm font-medium">Grid View</span>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-black rounded p-2 w-[150px]"
+          >
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+          </select>
         </div>
 
-        {/* Search */}
-        <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); handleSearch(e.target.value); }}
-          placeholder={`Search by`} className="border p-2 rounded w-1/3" />
+        <div className="lg:flex lg:ml-auto lg:gap-4 py-2 ">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`py-2 rounded ${viewMode === "list" ? "bg-blue-500 text-white" : "text-gray-500"} transition`}
+          >
+            <Rows3 className="w-10 h-6 cursor-pointer" />
+          </button>
+
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`py-2 rounded ${viewMode === "grid" ? "bg-blue-500 text-white" : "text-gray-500"} transition`}
+          >
+            <LayoutGrid className="w-10 h-6 cursor-pointer" />
+          </button>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex gap-4 justify-center bg-blue-500 font-bold text-white  lg:w-1/4 text-[20px] py-2 px-4 rounded md:px-10"
+        >
+          Add Todo
+        </button>
       </div>
+
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -224,20 +274,22 @@ export default function Dashboard() {
 
 
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="lg:grid lg:grid-cols-3 lg:gap-10 md:grid md:grid-cols-2 md:gap-5 ">
           {filteredTodos.map((todo: TodoFormData) => (
-            <div key={todo._id} className="border p-5 rounded shadow">
-              <h2 className="text-lg font-bold">{todo.title}</h2>
-              <p>{todo.description}</p>
-              <p>Date: {new Date(todo.date).toLocaleDateString()}</p>
-              <p>Status: {todo.status}</p>
-              <div className="flex gap-2 mt-2">
-                <button className="bg-yellow-500 text-white px-2 py-1 rounded" onClick={() => handleEdit(todo)}>Edit</button>
+            <div key={todo._id} className="border-[10px] border-white-800 p-5 rounded-[20px]  bg-gradient-to-tr from-slate-900 to-gray-900 text-white shadow-lg ">
+              <h2 className="text-[20px] font-bold text-center py-3 ">{todo.title.toUpperCase()}</h2>
+              <div className="text-[18px] font-medium px-5">
+                <p className="py-1">{todo.description}</p>
+                <p className="py-1">Date: {new Date(todo.date).toLocaleDateString()}</p>
+                <p className="py-1">Status: {todo.status}</p>
+              </div>
+              {/* <div className="flex gap-4 px-5 py-3">
+                <button className="bg-yellow-500 text-white px-7 py-2 font-medium text-[17px] rounded" onClick={() => handleEdit(todo)}>Edit</button>
                 <Dialog>
                   <DialogTrigger asChild>
                     <button
                       onClick={() => setDeleteConfirmId(todo._id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded"
+                      className="bg-red-500 text-white font-medium px-4 py-2 text-[17px] rounded"
                     >
                       Delete
                     </button>
@@ -257,42 +309,148 @@ export default function Dashboard() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+              </div> */}
+
+              <div className="flex gap-3 ml-auto text-[17px]">
+                <button
+                  className={`bg-yellow-500 text-white font-medium px-7 py-2 rounded  
+                ${todo.status === "completed" ? "opacity-0.8 cursor-not-allowed" : ""}`}
+                  onClick={() => handleEdit(todo)}
+                  disabled={todo.status === "completed"}
+                >
+                  Edit
+                </button>
+
+                <button
+                  className={`bg-green-500 text-white font-medium px-5 py-2 rounded shrink
+                ${todo.status === "completed" ? "opacity-0.9 cursor-not-allowed" : ""}`}
+                  onClick={() => handleMarkAsDone(todo._id)}
+                  disabled={todo.status === "completed"}
+                >
+                  Done
+                </button>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button
+                      onClick={() => setDeleteConfirmId(todo._id)}
+                      className="bg-red-500 text-white font-medium px-4 py-2 rounded shrink "
+                    >
+                      Delete
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold">Are you sure?</DialogTitle>
+                      <DialogDescription className="text-black font-mono text-[16px]">
+                        This action cannot be undone. It will permanently delete this TODO item.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <button className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+                      </DialogClose>
+                      <button className="bg-red-600 text-white px-4 py-2 rounded" onClick={handleDelete}>
+                        Confirm Delete
+                      </button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
+
+
             </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 ">
           {filteredTodos.map((todo: TodoFormData) => (
-            <div key={todo._id} className="border p-3 rounded shadow flex justify-between items-center">
-              <h2 className="text-lg font-bold">{todo.title}</h2>
-              <div className="flex gap-2">
-                <button className="bg-yellow-500 text-white px-2 py-1 rounded" onClick={() => handleEdit(todo)} >Edit</button>
-                <Dialog>
+            <div key={todo._id} className="border p-3 rounded-[10px] shadow-lg flex items-center gap-2 bg-gradient-to-tr from-slate-900 to-gray-900 text-white">
+              <Image
+                src="/demo.jpeg"
+                width={40}
+                height={40}
+                alt="Logo"
+                className="rounded-[8px]"
+              />
+              <h2 className="left-0 text-lg font-bold">{todo.title}</h2>
+              {/* <div className="flex gap-3 ml-auto text-[17px] ">
+                <button className="bg-yellow-500 text-white font-medium px-7 py-2 rounded" onClick={() => handleEdit(todo)} >Edit</button>
+               
+                 <Dialog>
                   <DialogTrigger asChild>
                     <button
                       onClick={() => setDeleteConfirmId(todo._id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded"
+                      className="bg-red-500 text-white font-medium px-4 py-2 rounded "
                     >
                       Delete
                     </button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="">
                     <DialogHeader>
-                      <DialogTitle>Are you sure?</DialogTitle>
-                      <DialogDescription>
+                      <DialogTitle className="text-2xl font-bold">Are you sure?</DialogTitle>
+                      <DialogDescription className="text-black font-mono text-[16px]">
                         This action cannot be undone. It will permanently delete this TODO item.
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                      <DialogClose asChild>
+                      <DialogClose asChild className="ext-[14px] text-black">
                         <Button variant="secondary">Cancel</Button>
                       </DialogClose>
                       <Button variant="destructive" onClick={handleDelete}>Confirm Delete</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+              </div> */}
+
+              <div className="flex gap-3 ml-auto text-[17px]">
+                <button
+                  className={`bg-yellow-500 text-white font-medium px-7 py-2 rounded 
+                ${todo.status === "completed" ? "opacity-0.9 cursor-not-allowed" : ""}`}
+                  onClick={() => handleEdit(todo)}
+                  disabled={todo.status === "completed"}
+                >
+                  Edit
+                </button>
+
+                <button
+                  className={`bg-green-500 text-white font-medium px-5 py-2 rounded 
+                ${todo.status === "completed" ? "opacity-0.9 cursor-not-allowed" : ""}`}
+                  onClick={() => handleMarkAsDone(todo._id)}
+                  disabled={todo.status === "completed"}
+                >
+                  Done
+                </button>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button
+                      onClick={() => setDeleteConfirmId(todo._id)}
+                      className="bg-red-500 text-white font-medium px-4 py-2 rounded"
+                    >
+                      Delete
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold">Are you sure?</DialogTitle>
+                      <DialogDescription className="text-black font-mono text-[16px]">
+                        This action cannot be undone. It will permanently delete this TODO item.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <button className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+                      </DialogClose>
+                      <button className="bg-red-600 text-white px-4 py-2 rounded" onClick={handleDelete}>
+                        Confirm Delete
+                      </button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
+
+
             </div>
           ))}
         </div>
